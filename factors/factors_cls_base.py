@@ -198,22 +198,22 @@ class CFactorsWithMajorReturnAndMacroEconomic(CFactorsWithMajorReturnAndArgWin):
 
 
 class CFactorsWithBasis(CFactors):
-    def __init__(self, fundamental_by_instru_dir: str, **kwargs):
+    def __init__(self, by_instru_fd_dir: str, **kwargs):
         super().__init__(**kwargs)
-        self.manager_basis = CFundByInstrument(self.universe, fundamental_by_instru_dir, "BASIS")
+        self.manager_basis = CFundByInstrument(self.universe, by_instru_fd_dir, "BASIS")
 
 
 class CFactorsWithStock(CFactors):
-    def __init__(self, fundamental_by_instru_dir: str, **kwargs):
+    def __init__(self, by_instru_fd_dir: str, **kwargs):
         super().__init__(**kwargs)
-        self.manager_stock = CFundByInstrument(self.universe, fundamental_by_instru_dir, "STOCK")
+        self.manager_stock = CFundByInstrument(self.universe, by_instru_fd_dir, "STOCK")
 
 
 class CFactorsWithMajorMinorAndMdc(CFactors):
-    def __init__(self, futures_by_instrument_dir: str, major_minor_db_name: str, md_by_instru_dir: str, **kwargs):
+    def __init__(self, futures_by_instrument_dir: str, major_minor_db_name: str, by_instru_md_dir: str, **kwargs):
         super().__init__(**kwargs)
         self.manager_major_minor = CDbByInstrument(futures_by_instrument_dir, major_minor_db_name)
-        self.manager_md = CMdByInstrument(self.universe, md_by_instru_dir, "MDC")
+        self.manager_md = CMdByInstrument(self.universe, by_instru_md_dir, "MDC")
 
 
 class CFactorsWithInstruVolume(CFactors):

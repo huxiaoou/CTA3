@@ -4,7 +4,7 @@ import datetime as dt
 
 def parse_args(bgn_dates_options: dict[str, str]):
     args_parser = argparse.ArgumentParser(description="Entry point of this project", formatter_class=argparse.RawTextHelpFormatter)
-    args_parser.add_argument("-w", "--switch", type=str,
+    args_parser.add_argument("-w", "--switch", type=str, choices=('ir', 'au', 'mr', 'tr', 'trn', 'fe', 'fen', 'ic', 'icn', 'ics', 'icns', 'icc', 'fecor', 'sig', 'simu', 'eval'),
                              help="""use this to decide which parts to run, available options = {
         'ir': instrument return,
         'au': available universe,
@@ -54,7 +54,7 @@ def parse_args(bgn_dates_options: dict[str, str]):
 
 if __name__ == "__main__":
     import pandas as pd
-    from setup_project import calendar_path, instrument_info_path
+    from setup_project import calendar_path, futures_instru_info_path
     from config_project import bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification
     from skyrim.whiterun import CCalendarMonthly, CInstrumentInfoTable
 
@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     # some shared data
     calendar = CCalendarMonthly(calendar_path)
-    instru_into_tab = CInstrumentInfoTable(instrument_info_path, t_index_label="windCode", t_type="CSV")
+    instru_into_tab = CInstrumentInfoTable(futures_instru_info_path, t_index_label="windCode", t_type="CSV")
     mother_universe_df = pd.DataFrame({"instrument": concerned_instruments_universe})
     sector_df = pd.DataFrame.from_dict({z: {sector_classification[z]: 1} for z in concerned_instruments_universe}, orient="index").fillna(0)
 
@@ -161,30 +161,30 @@ if __name__ == "__main__":
                                   factors_exposure_dir=factors_exposure_raw_dir,
                                   run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date, **shared_keywords)
         elif factor == "RS":
-            from setup_project import fundamental_by_instru_dir
+            from setup_project import by_instru_fd_dir
             from factors.factors_cls_without_args import CFactorsRS
 
-            agent_factor = CFactorsRS(fundamental_by_instru_dir, **shared_keywords)
+            agent_factor = CFactorsRS(by_instru_fd_dir, **shared_keywords)
             agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
             apply_transformations(proc_num=proc_num, factor=factor, transform_types=["BR", "LR"],
                                   factors_settings=factors_settings, factors_transformation_directions=factors_transformation_directions,
                                   factors_exposure_dir=factors_exposure_raw_dir,
                                   run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date, **shared_keywords)
         elif factor == "BASIS":
-            from setup_project import fundamental_by_instru_dir
+            from setup_project import by_instru_fd_dir
             from factors.factors_cls_without_args import CFactorsBASIS
 
-            agent_factor = CFactorsBASIS(fundamental_by_instru_dir, **shared_keywords)
+            agent_factor = CFactorsBASIS(by_instru_fd_dir, **shared_keywords)
             agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
             apply_transformations(proc_num=proc_num, factor=factor, transform_types=["AVER", "BD", "LD"],
                                   factors_settings=factors_settings, factors_transformation_directions=factors_transformation_directions,
                                   factors_exposure_dir=factors_exposure_raw_dir,
                                   run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date, **shared_keywords)
         elif factor == "TS":
-            from setup_project import major_minor_db_name, md_by_instru_dir
+            from setup_project import major_minor_db_name, by_instru_md_dir
             from factors.factors_cls_without_args import CFactorsTS
 
-            agent_factor = CFactorsTS(futures_by_instrument_dir, major_minor_db_name, md_by_instru_dir, **shared_keywords)
+            agent_factor = CFactorsTS(futures_by_instrument_dir, major_minor_db_name, by_instru_md_dir, **shared_keywords)
             agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
             apply_transformations(proc_num=proc_num, factor=factor, transform_types=["AVER", "BD", "LD"],
                                   factors_settings=factors_settings, factors_transformation_directions=factors_transformation_directions,
@@ -369,7 +369,7 @@ if __name__ == "__main__":
             ic_tests_summary_dir=ic_tests_summary_dir, neutral_tag="RAW",
         )
         agent_summary.get_summary_mp(factors_raw, factors_classification)
-        agent_summary.get_cumsum_mp(factors_group)
+        agent_summary.get_cumsum_mp(factors_group, selected_factors_pool=factors_raw)
         agent_summary.plot_selected_factors_cumsum(selected_raw_factors)
     elif switch in ["ICNS"]:
         from config_factor import factors_raw, factors_classification, factors_group
@@ -382,7 +382,7 @@ if __name__ == "__main__":
             ic_tests_summary_dir=ic_tests_summary_dir, neutral_tag="NEU",
         )
         agent_summary.get_summary_mp(factors_raw, factors_classification)
-        agent_summary.get_cumsum_mp(factors_group)
+        agent_summary.get_cumsum_mp(factors_group, selected_factors_pool=factors_raw)
         agent_summary.plot_selected_factors_cumsum(selected_neu_factors)
     elif switch in ["ICC"]:
         from setup_project import ic_tests_summary_dir
@@ -433,11 +433,9 @@ if __name__ == "__main__":
         elif sig_type == "PORTFOLIO":
             from setup_project import signals_hedge_test_dir, signals_portfolios_dir, simulations_hedge_test_dir, signals_optimized_dir
             from config_factor import factors_classification, factors_raw, factors_neu
-            from config_portfolio import (src_signal_ids_raw, src_signal_ids_neu,
-                                          selected_src_signal_ids_raw, selected_src_signal_ids_neu, size_raw, size_neu,
-                                          dyn_top_n, trn_win, lbd, min_model_days)
+            from config_portfolio import selected_src_signal_ids_raw, selected_src_signal_ids_neu, size_raw, size_neu, trn_win, lbd, min_model_days
             from signals.signals_cls_portfolio import CSignalCombineFromOtherSignalsWithFixWeight, CSignalCombineFromOtherSignalsWithDynWeight
-            from signals.signals_cls_optimizer import CSignalOptimizerMinUtyCon, CSignalOptimizerMinUtyConTopN
+            from signals.signals_cls_optimizer import CSignalOptimizerMinUtyCon
             from skyrim.whiterun import SetFontGreen
 
             print(SetFontGreen(f"... trnWin = {trn_win:>2d}, lbd = {lbd:>6.2f}"))
@@ -445,20 +443,20 @@ if __name__ == "__main__":
             # RAW FIX
             signals = CSignalCombineFromOtherSignalsWithFixWeight(
                 src_signal_weight={_: 1 / size_raw for _ in selected_src_signal_ids_raw},
-                src_signal_ids=selected_src_signal_ids_raw, src_signal_dir=signals_hedge_test_dir, sig_id="raw_fix",
+                src_signal_ids=selected_src_signal_ids_raw, src_signal_dir=signals_hedge_test_dir, sig_id="RF",
                 sig_save_dir=signals_portfolios_dir, calendar=calendar)
             signals.main(run_mode, bgn_date, stp_date)
 
             # NEU FIX
             signals = CSignalCombineFromOtherSignalsWithFixWeight(
                 src_signal_weight={_: 1 / size_neu for _ in selected_src_signal_ids_neu},
-                src_signal_ids=selected_src_signal_ids_neu, src_signal_dir=signals_hedge_test_dir, sig_id="neu_fix",
+                src_signal_ids=selected_src_signal_ids_neu, src_signal_dir=signals_hedge_test_dir, sig_id="NF",
                 sig_save_dir=signals_portfolios_dir, calendar=calendar)
             signals.main(run_mode, bgn_date, stp_date)
 
             # RAW DYN
             optimizer = CSignalOptimizerMinUtyCon(
-                save_id="raw_min_uty_con", src_signal_ids=selected_src_signal_ids_raw,
+                save_id="RD", src_signal_ids=selected_src_signal_ids_raw,
                 weight_bounds=(1 / size_raw / 2, 2 / size_raw), total_pos_lim=(0, 1), maxiter=10000,
                 trn_win=trn_win, min_model_days=min_model_days, lbd=lbd,
                 simu_test_dir=simulations_hedge_test_dir, optimized_dir=signals_optimized_dir,
@@ -468,13 +466,13 @@ if __name__ == "__main__":
             signal_weight_df = optimizer.get_signal_weight(bgn_date, stp_date)
             signals = CSignalCombineFromOtherSignalsWithDynWeight(
                 src_signal_weight=signal_weight_df,
-                src_signal_ids=selected_src_signal_ids_raw, src_signal_dir=signals_hedge_test_dir, sig_id="raw_min_uty_con",
+                src_signal_ids=selected_src_signal_ids_raw, src_signal_dir=signals_hedge_test_dir, sig_id="RD",
                 sig_save_dir=signals_portfolios_dir, calendar=calendar)
             signals.main(run_mode, bgn_date, stp_date)
 
             # NEU DYN
             optimizer = CSignalOptimizerMinUtyCon(
-                save_id="neu_min_uty_con", src_signal_ids=selected_src_signal_ids_neu,
+                save_id="ND", src_signal_ids=selected_src_signal_ids_neu,
                 weight_bounds=(1 / size_neu / 2, 2 / size_neu), total_pos_lim=(0, 1), maxiter=10000,
                 trn_win=trn_win, min_model_days=min_model_days, lbd=lbd,
                 simu_test_dir=simulations_hedge_test_dir, optimized_dir=signals_optimized_dir,
@@ -484,43 +482,9 @@ if __name__ == "__main__":
             signal_weight_df = optimizer.get_signal_weight(bgn_date, stp_date)
             signals = CSignalCombineFromOtherSignalsWithDynWeight(
                 src_signal_weight=signal_weight_df,
-                src_signal_ids=selected_src_signal_ids_neu, src_signal_dir=signals_hedge_test_dir, sig_id="neu_min_uty_con",
+                src_signal_ids=selected_src_signal_ids_neu, src_signal_dir=signals_hedge_test_dir, sig_id="ND",
                 sig_save_dir=signals_portfolios_dir, calendar=calendar)
             signals.main(run_mode, bgn_date, stp_date)
-
-            # # RAW DYN TOP
-            # optimizer = CSignalOptimizerMinUtyConTopN(
-            #     top_n=dyn_top_n, factors_classification=factors_classification, default_src_signal_ids=selected_src_signal_ids_raw,
-            #     save_id="raw_min_uty_con_top", src_signal_ids=src_signal_ids_raw,
-            #     weight_bounds=(1 / dyn_top_n / 2, 2 / dyn_top_n), total_pos_lim=(0, 1), maxiter=10000,
-            #     trn_win=trn_win, min_model_days=min_model_days, lbd=lbd,
-            #     simu_test_dir=simulations_hedge_test_dir, optimized_dir=signals_optimized_dir,
-            #     calendar=calendar)
-            # optimizer.main(run_mode, bgn_date, stp_date)
-            # signal_weight_df = optimizer.get_signal_weight(bgn_date, stp_date)
-            # src_signal_ids = signal_weight_df.columns.tolist()
-            # signals = CSignalCombineFromOtherSignalsWithDynWeight(
-            #     src_signal_weight=signal_weight_df,
-            #     src_signal_ids=src_signal_ids, src_signal_dir=signals_hedge_test_dir, sig_id="raw_min_uty_con_top",
-            #     sig_save_dir=signals_portfolios_dir, calendar=calendar)
-            # signals.main(run_mode, bgn_date, stp_date)
-            #
-            # # NEU DYN TOP
-            # optimizer = CSignalOptimizerMinUtyConTopN(
-            #     top_n=dyn_top_n, factors_classification=factors_classification,
-            #     save_id="neu_min_uty_con_top", src_signal_ids=src_signal_ids_neu, default_src_signal_ids=selected_src_signal_ids_neu,
-            #     weight_bounds=(1 / dyn_top_n / 2, 2 / dyn_top_n), total_pos_lim=(0, 1), maxiter=10000,
-            #     trn_win=trn_win, min_model_days=min_model_days, lbd=lbd,
-            #     simu_test_dir=simulations_hedge_test_dir, optimized_dir=signals_optimized_dir,
-            #     calendar=calendar)
-            # optimizer.main(run_mode, bgn_date, stp_date)
-            # signal_weight_df = optimizer.get_signal_weight(bgn_date, stp_date)
-            # src_signal_ids = signal_weight_df.columns.tolist()
-            # signals = CSignalCombineFromOtherSignalsWithDynWeight(
-            #     src_signal_weight=signal_weight_df,
-            #     src_signal_ids=src_signal_ids, src_signal_dir=signals_hedge_test_dir, sig_id="neu_min_uty_con_top",
-            #     sig_save_dir=signals_portfolios_dir, calendar=calendar)
-            # signals.main(run_mode, bgn_date, stp_date)
     elif switch in ["SIMU"]:
         from simulations.simulation_cls import cal_simulations_mp
         from setup_project import futures_by_instrument_dir, major_return_db_name
@@ -590,6 +554,5 @@ if __name__ == "__main__":
             evaluator.eval_by_year()
             evaluator.plot_nav()
             evaluator.plot_nav_by_year()
-
     else:
-        print(f"... switch = {switch} is not a legal option, please check again.")
+        pass

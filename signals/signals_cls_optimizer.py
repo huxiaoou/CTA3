@@ -238,31 +238,3 @@ class CSignalOptimizerMinUtyCon(CSignalOptimizerMinUty):
         return minimize_utility_con(mu=mu.values, sigma=sgm.values, lbd=self.lbd,
                                     bounds=self.weight_bounds, pos_lim=self.total_pos_lim,
                                     maxiter=self.maxiter)
-
-
-class CSignalOptimizerMinUtyConTopN(CSignalOptimizerMinUtyCon):
-    def _init_default_weights(self):
-        self.default_weights = pd.Series(data=1 / self.default_src_signal_qty, index=self.default_src_signal_ids)
-        return 0
-
-    def __init__(self, top_n: int, factors_classification: dict[str, tuple[str, str]], default_src_signal_ids: list[str], **kwargs):
-        self.top_n = top_n
-        self.factors_classification = factors_classification
-        self.default_src_signal_ids, self.default_src_signal_qty = default_src_signal_ids, len(default_src_signal_ids)
-        super().__init__(**kwargs)
-
-    def _get_selected_ret_df(self, train_bgn_date: str, train_end_date: str) -> pd.DataFrame:
-        all_src_sig_ret_df = super()._get_selected_ret_df(train_bgn_date, train_end_date)
-        mu, sd = all_src_sig_ret_df.mean(), all_src_sig_ret_df.std()
-        sharpe: pd.Series = mu / sd * np.sqrt(250)
-        class_data = {f: self.factors_classification[f.split("_")[0]] for f in sharpe.index}
-        sharpe_by_class_df = pd.DataFrame({
-            "sharpe": sharpe,
-            "class": class_data
-        })
-        sharpe_by_class_df.sort_values(by=["class", "sharpe"], ascending=[True, False], inplace=True)
-        sharpe_by_class_df.reset_index(inplace=True)
-        top_sharpe_for_each_class_df = sharpe_by_class_df.groupby(by="class").apply(lambda _: _.iloc[0])
-        top_sharpe_for_each_class_df.sort_values(by="sharpe", ascending=False, inplace=True)
-        top_src_ids = top_sharpe_for_each_class_df.head(self.top_n)["index"].tolist()
-        return all_src_sig_ret_df[top_src_ids]

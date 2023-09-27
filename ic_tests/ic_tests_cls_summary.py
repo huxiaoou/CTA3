@@ -97,26 +97,28 @@ class CICTestsSummary(object):
         print(f"... total time consuming:{SetFontGreen(f'{(t1 - t0).total_seconds():.2f}')} seconds")
         return 0
 
-    def _get_factor_cumsum(self, factor_class: str, factors: tuple[str]):
+    def _get_factor_cumsum(self, factor_class: str, factors: tuple[str], selected_factors_pool: list[str]):
         ic_cumsum_data = {}
         for factor in factors:
-            ic_df = self.__get_ic_test_data(factor)
-            ic_cumsum_data[factor] = ic_df["ic"].cumsum()
-        ic_cumsum_df = pd.DataFrame(ic_cumsum_data)
-        plot_lines(
-            t_plot_df=ic_cumsum_df, t_fig_name=self._get_cumsum_file_id(factor_class),
-            t_save_dir=self.ic_tests_summary_dir, t_colormap="jet",
-        )
-        ic_cumsum_file = self._get_cumsum_file_id(factor_class) + ".csv"
-        ic_cumsum_path = os.path.join(self.ic_tests_summary_dir, ic_cumsum_file)
-        ic_cumsum_df.to_csv(ic_cumsum_path, index_label="trade_date", float_format="%.6f")
+            if factor in selected_factors_pool:
+                ic_df = self.__get_ic_test_data(factor)
+                ic_cumsum_data[factor] = ic_df["ic"].cumsum()
+        if ic_cumsum_data:
+            ic_cumsum_df = pd.DataFrame(ic_cumsum_data)
+            plot_lines(
+                t_plot_df=ic_cumsum_df, t_fig_name=self._get_cumsum_file_id(factor_class),
+                t_save_dir=self.ic_tests_summary_dir, t_colormap="jet",
+            )
+            ic_cumsum_file = self._get_cumsum_file_id(factor_class) + ".csv"
+            ic_cumsum_path = os.path.join(self.ic_tests_summary_dir, ic_cumsum_file)
+            ic_cumsum_df.to_csv(ic_cumsum_path, index_label="trade_date", float_format="%.6f")
         return 0
 
-    def get_cumsum_mp(self, factors_group: dict[str, list[str]]):
+    def get_cumsum_mp(self, factors_group: dict[str, list[str]], selected_factors_pool: list[str]):
         t0 = dt.datetime.now()
         pool = mp.Pool(processes=self.proc_num)
         for factor_class, factors in factors_group.items():
-            pool.apply_async(self._get_factor_cumsum, args=(factor_class, factors))
+            pool.apply_async(self._get_factor_cumsum, args=(factor_class, factors, selected_factors_pool))
         pool.close()
         pool.join()
         t1 = dt.datetime.now()
