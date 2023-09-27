@@ -5,7 +5,7 @@ import multiprocessing as mp
 import pandas as pd
 from skyrim.riften import CNAV
 from skyrim.whiterun import SetFontGreen
-from skyrim.winterhold import plot_lines
+from skyrim.winterhold2 import CPlotLines
 
 
 class CEvaluation(object):
@@ -70,8 +70,10 @@ class CEvaluation(object):
     def plot_nav(self):
         portfolios_net_ret_df = self.__get_portfolio_net_ret()
         portfolios_nav_df = (portfolios_net_ret_df + 1).cumprod()
-        plot_lines(t_plot_df=portfolios_nav_df, t_fig_name=f"portfolios_nav",
-                   t_save_dir=self.eval_save_dir, t_tick_label_size=16)
+        artist = CPlotLines(plot_df=portfolios_nav_df, fig_name="portfolios_nav",
+                            line_color=["#708090", "#000000", "#4169E1", "#8B0000"], line_style=["--", "--", "--", "-"],
+                            fig_save_dir=self.eval_save_dir, xtick_label_size=16, ytick_label_size=16)
+        artist.plot()
         return 0
 
     def plot_nav_by_year(self):
@@ -80,8 +82,10 @@ class CEvaluation(object):
         for trade_year, trade_year_df in portfolios_net_ret_df.groupby(by="trade_year"):
             trade_year_ret = trade_year_df.drop("trade_year", axis=1)
             trade_year_nav = (trade_year_ret + 1).cumprod()
-            plot_lines(t_plot_df=trade_year_nav, t_fig_name=f"portfolios_nav_{trade_year}",
-                       t_save_dir=self.eval_save_dir, t_tick_label_size=16)
+            artist = CPlotLines(plot_df=trade_year_nav, fig_name=f"portfolios_nav_{trade_year}",
+                                line_color=["#708090", "#000000", "#4169E1", "#8B0000"], line_style=["--", "--", "--", "-"],
+                                fig_save_dir=self.eval_save_dir, xtick_label_size=16, ytick_label_size=16)
+            artist.plot()
         return 0
 
     def eval_by_year(self, printout: bool = False):
@@ -215,7 +219,9 @@ def plot_selected_factors_and_uni_prop(
         simu_nav_df = pd.read_csv(simu_nav_path, dtype={"trade_date": str}).set_index("trade_date")
         nav_data[simu_id] = simu_nav_df["nav"]
     nav_df = pd.DataFrame(nav_data)
-    plot_lines(t_plot_df=nav_df, t_fig_name=f"selected-factors_and_uni_prop-{save_id}-nav", t_save_dir=eval_save_dir)
+    artist = CPlotLines(plot_df=nav_df, fig_name=f"selected-factors_and_uni_prop-{save_id}-nav",
+                        fig_save_dir=eval_save_dir, xtick_label_size=16, ytick_label_size=16)
+    artist.plot()
     print(f"... @ {dt.datetime.now()} selected factors and uni-prop for {SetFontGreen(save_id)} plotted")
     return 0
 
@@ -236,6 +242,8 @@ def plot_selected_factors_and_uni_prop_ma(
         simu_nav_df = pd.read_csv(simu_nav_path, dtype={"trade_date": str}).set_index("trade_date")
         nav_data[simu_id] = simu_nav_df["nav"]
     nav_df = pd.DataFrame(nav_data)
-    plot_lines(t_plot_df=nav_df, t_fig_name=f"selected-factors_and_uni_prop_ma-{neutral_tag}-nav", t_save_dir=eval_save_dir)
+    artist = CPlotLines(plot_df=nav_df, fig_name=f"selected-factors_and_uni_prop_ma-{neutral_tag}-nav",
+                        fig_save_dir=eval_save_dir, xtick_label_size=16, ytick_label_size=16)
+    artist.plot()
     print(f"... @ {dt.datetime.now()} selected factors and uni-prop for {SetFontGreen(neutral_tag)} plotted")
     return 0
