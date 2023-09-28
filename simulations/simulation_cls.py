@@ -1,12 +1,10 @@
-import os
 import datetime as dt
 import multiprocessing as mp
 import pandas as pd
 from factors.factors_cls_base import CDbByInstrument
-from struct_lib.portfolios import get_nav_lib_struct
 from signals.signals_cls import CSignalReader
 from skyrim.whiterun import CCalendar, SetFontGreen, SetFontYellow
-from skyrim.falkreath import CManagerLibReader, CManagerLibWriter
+from struct_lib.portfolios import get_nav_lib_reader, get_nav_lib_writer
 
 
 class CSimulation(object):
@@ -35,21 +33,9 @@ class CSimulation(object):
         self.sig_dates = self.calendar.get_iter_list(self.sig_bgn_date, self.sig_stp_date, True)  # qty = n + 1 [T-2, T+n-1)
         return 0
 
-    def __get_nav_lib_reader(self) -> CManagerLibReader:
-        nav_lib_struct = get_nav_lib_struct(self.simu_id)
-        nav_lib_reader = CManagerLibReader(self.simu_save_dir, nav_lib_struct.m_lib_name)
-        nav_lib_reader.set_default(nav_lib_struct.m_tab.m_table_name)
-        return nav_lib_reader
-
-    def __get_nav_lib_writer(self) -> CManagerLibWriter:
-        nav_lib_struct = get_nav_lib_struct(self.simu_id)
-        nav_lib_writer = CManagerLibWriter(self.simu_save_dir, nav_lib_struct.m_lib_name)
-        nav_lib_writer.initialize_table(nav_lib_struct.m_tab, self.run_mode in ["O"])
-        return nav_lib_writer
-
     def __check_continuity(self):
         if self.run_mode in ["A"]:
-            nav_lib_reader = self.__get_nav_lib_reader()
+            nav_lib_reader = get_nav_lib_reader(self.simu_id, self.simu_save_dir)
             is_continuous = nav_lib_reader.check_continuity(self.iter_test_dates[0], self.calendar)
             nav_lib_reader.close()
             return is_continuous
@@ -90,7 +76,7 @@ class CSimulation(object):
 
             if self.run_mode in ["A"]:
                 last_trade_date = self.calendar.get_next_date(self.iter_test_dates[0], -1)
-                nav_lib_reader = self.__get_nav_lib_reader()
+                nav_lib_reader = get_nav_lib_reader(self.simu_id, self.simu_save_dir)
                 df = nav_lib_reader.read_by_date(last_trade_date, ["nav"])
                 last_nav = df["nav"].iloc[-1]
             else:
@@ -105,7 +91,7 @@ class CSimulation(object):
                 nav_df["netRet"] = nav_df["rawRet"] - nav_df["fee"]
                 nav_df["nav"] = (nav_df["netRet"] + 1).cumprod() * last_nav
 
-                nav_lib_writer = self.__get_nav_lib_writer()
+                nav_lib_writer = get_nav_lib_writer(self.simu_id, self.simu_save_dir, self.run_mode)
                 nav_lib_writer.update(nav_df, True)
                 nav_lib_writer.close()
             else:

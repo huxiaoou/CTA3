@@ -461,9 +461,9 @@ if __name__ == "__main__":
                 trn_win=trn_win, min_model_days=min_model_days, lbd=lbd,
                 simu_test_dir=simulations_hedge_test_dir, optimized_dir=signals_optimized_dir,
                 calendar=calendar)
-            optimizer.main(run_mode, bgn_date, stp_date)
+            optimizer.main(run_mode, bgn_date, stp_date)  # only works on the last trade date of each month
             optimizer.plot_optimized_weight(reduced=True)
-            signal_weight_df = optimizer.get_signal_weight(bgn_date, stp_date)
+            signal_weight_df = optimizer.get_signal_weight(run_mode, bgn_date, stp_date)
             signals = CSignalCombineFromOtherSignalsWithDynWeight(
                 src_signal_weight=signal_weight_df,
                 src_signal_ids=selected_src_signal_ids_raw, src_signal_dir=signals_hedge_test_dir, sig_id="RD",
@@ -477,9 +477,9 @@ if __name__ == "__main__":
                 trn_win=trn_win, min_model_days=min_model_days, lbd=lbd,
                 simu_test_dir=simulations_hedge_test_dir, optimized_dir=signals_optimized_dir,
                 calendar=calendar)
-            optimizer.main(run_mode, bgn_date, stp_date)
+            optimizer.main(run_mode, bgn_date, stp_date)  # only works on the last trade date of each month
             optimizer.plot_optimized_weight(reduced=True)
-            signal_weight_df = optimizer.get_signal_weight(bgn_date, stp_date)
+            signal_weight_df = optimizer.get_signal_weight(run_mode, bgn_date, stp_date)
             signals = CSignalCombineFromOtherSignalsWithDynWeight(
                 src_signal_weight=signal_weight_df,
                 src_signal_ids=selected_src_signal_ids_neu, src_signal_dir=signals_hedge_test_dir, sig_id="ND",

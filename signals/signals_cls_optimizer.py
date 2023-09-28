@@ -1,4 +1,3 @@
-import os
 import warnings
 import numpy as np
 import pandas as pd
@@ -6,7 +5,7 @@ from skyrim.whiterun import CCalendarMonthly
 from skyrim.winterhold2 import CPlotBars
 from skyrim.falkreath import CManagerLibReader, CManagerLibWriter
 from scipy.optimize import minimize, NonlinearConstraint, LinearConstraint
-from struct_lib.portfolios import get_signal_optimized_lib_struct
+from struct_lib.portfolios import get_signal_optimized_lib_struct, get_nav_df
 
 
 def portfolio_return(w: np.ndarray, mu: np.ndarray) -> float:
@@ -150,20 +149,19 @@ class CSignalOptimizer(CSignalOptimizerReader):
             res = lib_reader.check_continuity_monthly(append_month, self.calendar)
             lib_reader.close()
             return res
-        else:
-            return 0
+        return 0
 
     def __load_simu_tests(self):
         ret_data = {}
         for src_signal_id in self.src_signal_ids:
-            simu_file = f"nav-{src_signal_id}.csv.gz"
-            simu_path = os.path.join(self.simu_test_dir, simu_file)
-            simu_df = pd.read_csv(simu_path, dtype={"trade_date": str}).set_index("trade_date")
+            simu_df = get_nav_df(src_signal_id, self.simu_test_dir)
             ret_data[src_signal_id] = simu_df["netRet"]
         self.signal_simu_ret_df = pd.DataFrame(ret_data)
         return 0
 
     def __load_train_dates(self, bgn_date: str, stp_date: str) -> list[tuple[str, str, str]]:
+        # only last date of each month, will be picked, and corresponding month will be in iter month
+        # otherwise train_dates would be empty
         train_dates = []
         iter_months = self.calendar.map_iter_dates_to_iter_months2(bgn_date, stp_date)
         for __train_end_month in iter_months:
@@ -204,17 +202,23 @@ class CSignalOptimizer(CSignalOptimizerReader):
                 self.__save(update_df, run_mode)
         return 0
 
-    def get_signal_weight(self, bgn_date: str, stp_date: str) -> pd.DataFrame:
-        header = pd.DataFrame({"trade_date": self.calendar.get_iter_list(bgn_date, stp_date, True)})
+    def get_signal_weight(self, run_mode: str, bgn_date: str, stp_date: str) -> pd.DataFrame:
+        bgn_month = bgn_date[0:6]
+        last_month = self.calendar.get_next_month(bgn_month, -1)
+        last_month_bgn_date = last_month + "01"
+        header = pd.DataFrame({"trade_date": self.calendar.get_iter_list(last_month_bgn_date, stp_date, True)})
         lib_reader = self._get_optimized_lib_reader()
         optimized_df = lib_reader.read_by_conditions(t_conditions=[
-            ("trade_date", ">=", bgn_date),
+            ("trade_date", ">=", last_month_bgn_date),
             ("trade_date", "<", stp_date),
         ], t_value_columns=["trade_date", "signal", "value"])
         monthly_df = pd.pivot_table(data=optimized_df, index="trade_date", columns="signal", values="value")
         signal_weight_df = pd.merge(left=header, right=monthly_df, left_on="trade_date", right_index=True, how="left")
         signal_weight_df.set_index("trade_date", inplace=True)
-        signal_weight_df = signal_weight_df.fillna(method="ffill").fillna(method="bfill")
+        signal_weight_df.fillna(method="ffill", inplace=True)
+        if run_mode in ["O"]:
+            signal_weight_df.fillna(method="bfill", inplace=True)
+        signal_weight_df = signal_weight_df.truncate(before=bgn_date)
         return signal_weight_df
 
 

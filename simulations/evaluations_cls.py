@@ -6,23 +6,7 @@ import pandas as pd
 from skyrim.riften import CNAV
 from skyrim.whiterun import SetFontGreen
 from skyrim.winterhold2 import CPlotLines
-from skyrim.falkreath import CManagerLibReader
-from struct_lib.portfolios import get_nav_lib_struct
-
-
-def get_nav_lib_reader(simu_id: str, simu_save_dir: str) -> CManagerLibReader:
-    nav_lib_struct = get_nav_lib_struct(simu_id)
-    nav_lib_reader = CManagerLibReader(simu_save_dir, nav_lib_struct.m_lib_name)
-    nav_lib_reader.set_default(nav_lib_struct.m_tab.m_table_name)
-    return nav_lib_reader
-
-
-def get_nav_df(simu_id: str, simu_save_dir: str) -> pd.DataFrame:
-    nav_lib_reader = get_nav_lib_reader(simu_id, simu_save_dir)
-    simu_nav_df = nav_lib_reader.read(["trade_date", "rawRet", "dltWgt", "fee", "netRet", "nav"])
-    nav_lib_reader.close()
-    simu_nav_df.set_index("trade_date", inplace=True)
-    return simu_nav_df
+from struct_lib.portfolios import get_nav_df
 
 
 class CEvaluation(object):
