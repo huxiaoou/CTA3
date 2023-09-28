@@ -6,6 +6,8 @@ import pandas as pd
 from skyrim.riften import CNAV
 from skyrim.whiterun import SetFontGreen
 from skyrim.winterhold2 import CPlotLines
+from skyrim.falkreath import CManagerLibReader
+from struct_lib.portfolios import get_nav_lib_struct
 
 
 class CEvaluation(object):
@@ -19,10 +21,17 @@ class CEvaluation(object):
         self.annual_risk_free_rate = annual_risk_free_rate
         self.eval_id = eval_id
 
+    def __get_nav_lib_reader(self, simu_id: str) -> CManagerLibReader:
+        nav_lib_struct = get_nav_lib_struct(simu_id)
+        nav_lib_reader = CManagerLibReader(self.simu_save_dir, nav_lib_struct.m_lib_name)
+        nav_lib_reader.set_default(nav_lib_struct.m_tab.m_table_name)
+        return nav_lib_reader
+
     def __get_nav_df(self, simu_id) -> pd.DataFrame:
-        simu_nav_file = f"nav-{simu_id}.csv.gz"
-        simu_nav_path = os.path.join(self.simu_save_dir, simu_nav_file)
-        simu_nav_df = pd.read_csv(simu_nav_path, dtype={"trade_date": str}).set_index("trade_date")
+        nav_lib_reader = self.__get_nav_lib_reader(simu_id)
+        simu_nav_df = nav_lib_reader.read(["trade_date", "rawRet", "dltWgt", "fee", "netRet", "nav"])
+        nav_lib_reader.close()
+        simu_nav_df.set_index("trade_date", inplace=True)
         return simu_nav_df
 
     def __get_portfolio_net_ret(self) -> pd.DataFrame:
@@ -220,6 +229,7 @@ def plot_selected_factors_and_uni_prop(
         nav_data[simu_id] = simu_nav_df["nav"]
     nav_df = pd.DataFrame(nav_data)
     artist = CPlotLines(plot_df=nav_df, fig_name=f"selected-factors_and_uni_prop-{save_id}-nav",
+                        line_style=["-"] * 6 + ["-."] * 6 + ["--"] * 6,
                         fig_save_dir=eval_save_dir, xtick_label_size=16, ytick_label_size=16)
     artist.plot()
     print(f"... @ {dt.datetime.now()} selected factors and uni-prop for {SetFontGreen(save_id)} plotted")
@@ -243,6 +253,7 @@ def plot_selected_factors_and_uni_prop_ma(
         nav_data[simu_id] = simu_nav_df["nav"]
     nav_df = pd.DataFrame(nav_data)
     artist = CPlotLines(plot_df=nav_df, fig_name=f"selected-factors_and_uni_prop_ma-{neutral_tag}-nav",
+                        line_style=["-"] * 6 + ["-."] * 6 + ["--"] * 6,
                         fig_save_dir=eval_save_dir, xtick_label_size=16, ytick_label_size=16)
     artist.plot()
     print(f"... @ {dt.datetime.now()} selected factors and uni-prop for {SetFontGreen(neutral_tag)} plotted")

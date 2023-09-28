@@ -26,20 +26,20 @@ def parse_args(bgn_dates_options: dict[str, str]):
     args_parser.add_argument("-m", "--mode", type=str, choices=("o", "a"), help="""run mode, available options = {'o', 'a'}""")
     args_parser.add_argument("-b", "--bgn", type=str, help="""begin date, must be provided if run_mode = 'a' else DO NOT provided.""")
     args_parser.add_argument("-s", "--stp", type=str, help="""stop  date, NOT INCLUDED, must be provided if run_mode = 'o'.""")
-    args_parser.add_argument("-f", "--factor", type=str, default="",
-                             help="""optional, must be provided if switch = 'factors_exposure', use this to decide which factor, available options = {
-        'MTM',SIZE','OI','RS','BASIS','TS','LIQUID','SR','HR','NETOI','NETOIW','NETDOI','NETDOIW',
-        'SKEW','VOL','RVOL','CV','CTP','CVP','CSP','BETA','VAL','CBETA','IBETA','MACD','KDJ','RSI',  
-        }""")
-    args_parser.add_argument("-t", "--type", type=str, default="",
-                             help="""optional, must be provided if switch in ('sig','simu','eval'), use this to decide type of signal/simulation, available options = {'hedge', 'portfolio'}""")
+    args_parser.add_argument("-f", "--factor", type=str, default="", help="""optional, must be provided if switch = 'factors_exposure', use this to decide which factor""",
+                             choices=(
+                                 'MTM', 'SIZE', 'OI', 'RS', 'BASIS', 'TS', 'LIQUID', 'SR', 'HR', 'NETOI', 'NETOIW', 'NETDOI', 'NETDOIW',
+                                 'SKEW', 'VOL', 'RVOL', 'CV', 'CTP', 'CVP', 'CSP', 'BETA', 'VAL', 'CBETA', 'IBETA', 'MACD', 'KDJ', 'RSI',),
+                             )
+    args_parser.add_argument("-t", "--type", type=str, default="", choices=('hedge-raw', 'hedge-ma', 'portfolio'),
+                             help="""optional, must be provided if switch in ('sig','simu','eval'), use this to decide type of signal/simulation""")
     args_parser.add_argument("-p", "--process", type=int, default=5, help="""number of process to be called when calculating, default = 5""")
     args = args_parser.parse_args()
 
     _switch = args.switch.upper()
     if _switch in ["ICS", "ICNS", "ICC", "EVAL"]:
         _run_mode = None
-    elif _switch in ["IR", "MR", "FECOR", "SIMU"]:
+    elif _switch in ["IR", "MR", "FECOR"]:
         _run_mode = "O"
     else:
         _run_mode = args.mode.upper()
@@ -499,7 +499,7 @@ if __name__ == "__main__":
                        for sid, uni_prop, mov_ave_win in ittl.product(factors_raw + factors_neu, uni_props, mov_ave_wins)]
             cal_simulations_mp(
                 proc_num=proc_num,
-                sig_ids=sig_ids, test_bgn_date=bgn_date, test_stp_date=stp_date,
+                sig_ids=sig_ids, run_mode=run_mode, test_bgn_date=bgn_date, test_stp_date=stp_date,
                 cost_rate=cost_rate_hedge_test, test_universe=concerned_instruments_universe,
                 signals_dir=signals_hedge_test_dir, simulations_dir=simulations_hedge_test_dir,
                 futures_by_instrument_dir=futures_by_instrument_dir, major_return_db_name=major_return_db_name,
@@ -514,7 +514,7 @@ if __name__ == "__main__":
             print(f"... simu bgn_date = {SetFontGreen(bgn_date)}")
             cal_simulations_mp(
                 proc_num=proc_num,
-                sig_ids=test_portfolio_ids, test_bgn_date=bgn_date, test_stp_date=stp_date,
+                sig_ids=test_portfolio_ids, run_mode=run_mode, test_bgn_date=bgn_date, test_stp_date=stp_date,
                 cost_rate=cost_rate_portfolios, test_universe=concerned_instruments_universe,
                 signals_dir=signals_portfolios_dir, simulations_dir=simulations_portfolios_dir,
                 futures_by_instrument_dir=futures_by_instrument_dir, major_return_db_name=major_return_db_name,

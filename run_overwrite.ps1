@@ -41,10 +41,10 @@ python main.py -p $proc_num -w icc
 # hedge test
 python main.py -p $proc_num -w sig  -t hedge-raw -m o -s $stp_date
 python main.py -p $proc_num -w sig  -t hedge-ma  -m o -s $stp_date
-python main.py -p $proc_num -w simu -t hedge-ma       -s $stp_date
+python main.py -p $proc_num -w simu -t hedge-ma  -m o -s $stp_date
 python main.py -p $proc_num -w eval -t hedge-ma
 
 # portfolios
 python main.py -p $proc_num -w sig  -t portfolio -m o -s $stp_date
-python main.py -p $proc_num -w simu -t portfolio      -s $stp_date
+python main.py -p $proc_num -w simu -t portfolio -m o -s $stp_date
 python main.py -p $proc_num -w eval -t portfolio

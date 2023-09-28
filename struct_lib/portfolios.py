@@ -21,3 +21,15 @@ def get_signal_optimized_lib_struct(opt_id: str) -> CLib1Tab1:
             "value_columns": {"value": "REAL"},
         })
     )
+
+
+def get_nav_lib_struct(signal_id: str) -> CLib1Tab1:
+    return CLib1Tab1(
+        t_lib_name=f"nav-{signal_id}.db",
+        t_tab=CTable({
+            "table_name": signal_id,
+            "primary_keys": {"trade_date": "TEXT"},
+            "value_columns": {"rawREt": "REAL", "dltWgt": "REAL", "fee": "REAL",
+                              "netREt": "REAL", "nav": "REAL"},
+        })
+    )
