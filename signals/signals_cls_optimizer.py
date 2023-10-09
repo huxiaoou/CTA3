@@ -232,13 +232,14 @@ class CSignalOptimizerMinUty(CSignalOptimizer):
 
 
 class CSignalOptimizerMinUtyCon(CSignalOptimizerMinUty):
-    def __init__(self, weight_bounds: tuple[float, float], total_pos_lim: tuple[float, float], maxiter: int, **kwargs):
+    def __init__(self, weight_bounds: tuple[float, float], total_pos_lim: tuple[float, float], maxiter: int, tol: float, **kwargs):
         self.weight_bounds = weight_bounds
         self.total_pos_lim = total_pos_lim
         self.maxiter = maxiter
+        self.tol = tol
         super().__init__(**kwargs)
 
     def _optimize(self, mu: pd.Series, sgm: pd.DataFrame) -> (np.ndarray, float):
         return minimize_utility_con(mu=mu.values, sigma=sgm.values, lbd=self.lbd,
                                     bounds=self.weight_bounds, pos_lim=self.total_pos_lim,
-                                    maxiter=self.maxiter)
+                                    maxiter=self.maxiter, tol=self.tol)

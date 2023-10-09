@@ -457,7 +457,7 @@ if __name__ == "__main__":
             # RAW DYN
             optimizer = CSignalOptimizerMinUtyCon(
                 save_id="RD", src_signal_ids=selected_src_signal_ids_raw,
-                weight_bounds=(1 / size_raw / 2, 2 / size_raw), total_pos_lim=(0, 1), maxiter=10000,
+                weight_bounds=(1 / size_raw / 2, 2 / size_raw), total_pos_lim=(0, 1), maxiter=10000, tol=1e-8,
                 trn_win=trn_win, min_model_days=min_model_days, lbd=lbd,
                 simu_test_dir=simulations_hedge_test_dir, optimized_dir=signals_optimized_dir,
                 calendar=calendar)
@@ -473,7 +473,7 @@ if __name__ == "__main__":
             # NEU DYN
             optimizer = CSignalOptimizerMinUtyCon(
                 save_id="ND", src_signal_ids=selected_src_signal_ids_neu,
-                weight_bounds=(1 / size_neu / 2, 2 / size_neu), total_pos_lim=(0, 1), maxiter=10000,
+                weight_bounds=(1 / size_neu / 2, 2 / size_neu), total_pos_lim=(0, 1), maxiter=10000, tol=1e-8,
                 trn_win=trn_win, min_model_days=min_model_days, lbd=lbd,
                 simu_test_dir=simulations_hedge_test_dir, optimized_dir=signals_optimized_dir,
                 calendar=calendar)
