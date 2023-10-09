@@ -28,8 +28,8 @@ def parse_args(bgn_dates_options: dict[str, str]):
     args_parser.add_argument("-s", "--stp", type=str, help="""stop  date, NOT INCLUDED, must be provided if run_mode = 'o'.""")
     args_parser.add_argument("-f", "--factor", type=str, default="", help="""optional, must be provided if switch = 'factors_exposure', use this to decide which factor""",
                              choices=(
-                                 'MTM', 'SIZE', 'OI', 'RS', 'BASIS', 'TS', 'LIQUID', 'SR', 'HR', 'NETOI', 'NETOIW', 'NETDOI', 'NETDOIW',
-                                 'SKEW', 'VOL', 'RVOL', 'CV', 'CTP', 'CVP', 'CSP', 'BETA', 'VAL', 'CBETA', 'IBETA', 'MACD', 'KDJ', 'RSI',),
+                                 'mtm', 'size', 'oi', 'rs', 'basis', 'ts', 'liquid', 'sr', 'hr', 'netoi', 'netoiw', 'netdoi', 'netdoiw',
+                                 'skew', 'vol', 'rvol', 'cv', 'ctp', 'cvp', 'csp', 'beta', 'val', 'cbeta', 'ibeta', 'macd', 'kdj', 'rsi',),
                              )
     args_parser.add_argument("-t", "--type", type=str, default="", choices=('hedge-raw', 'hedge-ma', 'portfolio'),
                              help="""optional, must be provided if switch in ('sig','simu','eval'), use this to decide type of signal/simulation""")
