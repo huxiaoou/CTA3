@@ -155,7 +155,7 @@ class CSignalHedge(CSignalFromSrcFactor):
         super().__init__(src_factor_id, src_factor_dir, sig_id, **kwargs)
 
     def __cal_signal(self, df: pd.DataFrame):
-        sorted_df = df[["instrument", "value"]].sort_values("value", ascending=False)
+        sorted_df = df[["instrument", "value"]].sort_values(["value", "instrument"], ascending=[False, True])
         k = len(df)
         k0 = int(np.round(k * self.uni_prop))
         rel_wgt = np.array([1] * k0 + [0] * (k - 2 * k0) + [-1] * k0)
