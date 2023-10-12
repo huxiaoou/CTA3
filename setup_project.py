@@ -63,7 +63,8 @@ instrument_volume_db_name = global_config["futures"]["by_instrument"]["instrumen
 instrument_member_db_name = global_config["futures"]["by_instrument"]["instrument_member_db"]
 
 # --- projects data
-deploy_cta_data_dir = os.path.join(futures_dir, global_config["futures"]["cta"]["dir"])
+for_projects_dir = os.path.join(project_data_root_dir, global_config["forProjects"]["dir"])
+deploy_cta_data_dir = os.path.join(for_projects_dir, global_config["forProjects"]["cta"]["dir"])
 
 # library
 instruments_return_dir = os.path.join(deploy_cta_data_dir, "instruments_return")
