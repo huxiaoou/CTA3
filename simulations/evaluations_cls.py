@@ -202,7 +202,7 @@ def concat_eval_ma_results(uni_props: tuple[float], mov_ave_wins: tuple[int], ev
 def plot_selected_factors_and_uni_prop_ma(
         selected_factors_and_uni_prop_ma: tuple[tuple], neutral_tag: str,
         simu_save_dir: str, eval_save_dir: str):
-    nav_data = {}
+    nav_data, ret_data = {}, {}
     for factor, uni_prop, mov_ave_win in selected_factors_and_uni_prop_ma:
         uni_prop_lbl = f"UHP{int(uni_prop * 10):02d}"
         ma_lbl = f"MA{mov_ave_win:02d}"
@@ -212,10 +212,23 @@ def plot_selected_factors_and_uni_prop_ma(
             simu_id = f"{factor}_NEU_{uni_prop_lbl}_{ma_lbl}"
         simu_nav_df = get_nav_df(simu_id, simu_save_dir)
         nav_data[simu_id] = simu_nav_df["nav"]
-    nav_df = pd.DataFrame(nav_data)
+        ret_data[simu_id] = simu_nav_df["netRet"]
+    nav_df, ret_df = pd.DataFrame(nav_data), pd.DataFrame(ret_data)
+
+    # plot all
     artist = CPlotLines(plot_df=nav_df, fig_name=f"selected-factors_and_uni_prop_ma-{neutral_tag}-nav",
                         line_style=["-"] * 6 + ["-."] * 6 + ["--"] * 6,
                         fig_save_dir=eval_save_dir, xtick_label_size=16, ytick_label_size=16)
     artist.plot()
+
+    # plot by year
+    ret_df["trade_year"] = ret_df.index.map(lambda z: z[0:4])
+    for trade_year, trade_year_ret_df in ret_df.groupby(by="trade_year"):
+        trade_year_nav_df = (trade_year_ret_df.drop(labels="trade_year", axis=1) + 1).cumprod()
+        artist = CPlotLines(plot_df=trade_year_nav_df, fig_name=f"selected-factors_and_uni_prop_ma-{neutral_tag}-nav-{trade_year}",
+                            line_style=["-"] * 6 + ["-."] * 6 + ["--"] * 6,
+                            fig_save_dir=eval_save_dir, xtick_label_size=16, ytick_label_size=16)
+        artist.plot()
+
     print(f"... @ {dt.datetime.now()} selected factors and uni-prop for {SetFontGreen(neutral_tag)} plotted")
     return 0
