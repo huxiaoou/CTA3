@@ -25,7 +25,7 @@ class CSignalCombineFromOtherSignals(CSignalReader):
         return 0
 
     @staticmethod
-    def normalize_final_weight(df: pd.DataFrame):
+    def normalize_final_weight(df: pd.DataFrame) -> pd.DataFrame:
         wgt_abs_sum = df.abs().sum(axis=1)
         return df.div(wgt_abs_sum, axis=0).fillna(0)
 
