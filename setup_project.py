@@ -89,10 +89,12 @@ signals_optimized_dir = os.path.join(signals_dir, "optimized")
 simulations_dir = os.path.join(deploy_cta_data_dir, "simulations")
 simulations_hedge_test_dir = os.path.join(simulations_dir, "hedge_test")
 simulations_portfolios_dir = os.path.join(simulations_dir, "portfolios")
+simulations_complex_dir = os.path.join(simulations_dir, "complex")
 
 evaluations_dir = os.path.join(deploy_cta_data_dir, "evaluations")
 evaluations_hedge_test_dir = os.path.join(evaluations_dir, "hedge_test")
 evaluations_portfolios_dir = os.path.join(evaluations_dir, "portfolios")
+evaluations_complex_dir = os.path.join(evaluations_dir, "complex")
 
 if __name__ == "__main__":
     from skyrim.winterhold import check_and_mkdir
@@ -118,8 +120,10 @@ if __name__ == "__main__":
     check_and_mkdir(simulations_dir)
     check_and_mkdir(simulations_hedge_test_dir)
     check_and_mkdir(simulations_portfolios_dir)
+    check_and_mkdir(simulations_complex_dir)
     check_and_mkdir(evaluations_dir)
     check_and_mkdir(evaluations_hedge_test_dir)
     check_and_mkdir(evaluations_portfolios_dir)
+    check_and_mkdir(evaluations_complex_dir)
 
     print("... directory system for this project has been established.")

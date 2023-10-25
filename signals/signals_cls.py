@@ -6,13 +6,13 @@ import pandas as pd
 from skyrim.whiterun import CCalendar, SetFontGreen
 from skyrim.falkreath import CManagerLibReader, CManagerLibWriter
 from struct_lib.returns_and_exposure import get_lib_struct_available_universe, get_lib_struct_factor_exposure
-from struct_lib.portfolios import get_signal_lib_struct
+from struct_lib.portfolios import get_lib_struct_signal
 
 
 class CSignal(object):
     def __init__(self, sig_id: str, sig_save_dir: str, calendar: CCalendar):
         self.sig_id = sig_id
-        self.sig_lib_struct = get_signal_lib_struct(self.sig_id)
+        self.sig_lib_struct = get_lib_struct_signal(self.sig_id)
         self.sig_save_dir = sig_save_dir
         self.calendar = calendar
 
@@ -69,7 +69,7 @@ class CSignalMA(CSignalReader):
     def __init__(self, src_sig_id: str, src_sig_save_dir: str, mov_ave_win: int, **kwargs):
         sig_id = f"{src_sig_id}_MA{mov_ave_win:02d}"
         self.src_sig_id, self.src_sid_dir = src_sig_id, src_sig_save_dir
-        self.src_sig_lib_struct = get_signal_lib_struct(src_sig_id)
+        self.src_sig_lib_struct = get_lib_struct_signal(src_sig_id)
         self.mov_ave_win = mov_ave_win
         super().__init__(sig_id=sig_id, **kwargs)
 

@@ -1,5 +1,5 @@
 import pandas as pd
-from struct_lib.portfolios import get_signal_lib_struct
+from struct_lib.portfolios import get_lib_struct_signal
 
 from skyrim.falkreath import CManagerLibReader
 
@@ -8,7 +8,7 @@ def display_signal_selected(sids: list[str], db_save_dir: str,
                             bgn_date: str, stp_date: str, instrument: str) -> pd.DataFrame:
     dfs_list = []
     for sid in sids:
-        sig_lib_struct = get_signal_lib_struct(sid)
+        sig_lib_struct = get_lib_struct_signal(sid)
         sig_lib_reader = CManagerLibReader(db_save_dir, sig_lib_struct.m_lib_name)
         sig_lib_reader.set_default(sig_lib_struct.m_tab.m_table_name)
         df = sig_lib_reader.read_by_conditions(t_conditions=[

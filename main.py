@@ -4,7 +4,7 @@ import datetime as dt
 
 def parse_args(bgn_dates_options: dict[str, str]):
     args_parser = argparse.ArgumentParser(description="Entry point of this project", formatter_class=argparse.RawTextHelpFormatter)
-    args_parser.add_argument("-w", "--switch", type=str, choices=('ir', 'au', 'mr', 'tr', 'trn', 'fe', 'fen', 'ic', 'icn', 'ics', 'icns', 'icc', 'fecor', 'sig', 'simu', 'eval'),
+    args_parser.add_argument("-w", "--switch", type=str, choices=('ir', 'au', 'mr', 'tr', 'trn', 'fe', 'fen', 'ic', 'icn', 'ics', 'icns', 'icc', 'fecor', 'sig', 'simu', 'eval', 'simuq'),
                              help="""use this to decide which parts to run, available options = {
         'ir': instrument return,
         'au': available universe,
@@ -22,8 +22,9 @@ def parse_args(bgn_dates_options: dict[str, str]):
         'sig': signals,
         'simu': simulations,
         'eval': evaluations,
+        'simuq': simulations-complex
         }""")
-    args_parser.add_argument("-m", "--mode", type=str, choices=("o", "a"), help="""run mode, available options = {'o', 'a'}""")
+    args_parser.add_argument("-m", "--mode", type=str, choices=("o", "a"), help="""run mode""")
     args_parser.add_argument("-b", "--bgn", type=str, help="""begin date, must be provided if run_mode = 'a' else DO NOT provided.""")
     args_parser.add_argument("-s", "--stp", type=str, help="""stop  date, NOT INCLUDED, must be provided if run_mode = 'o'.""")
     args_parser.add_argument("-f", "--factor", type=str, default="", help="""optional, must be provided if switch = 'factors_exposure', use this to decide which factor""",
@@ -39,7 +40,7 @@ def parse_args(bgn_dates_options: dict[str, str]):
     _switch = args.switch.upper()
     if _switch in ["ICS", "ICNS", "ICC", "EVAL"]:
         _run_mode = None
-    elif _switch in ["IR", "MR", "FECOR"]:
+    elif _switch in ["IR", "MR", "FECOR", "SIMUQ"]:
         _run_mode = "O"
     else:
         _run_mode = args.mode.upper()
@@ -554,5 +555,42 @@ if __name__ == "__main__":
             evaluator.eval_by_year()
             evaluator.plot_nav()
             evaluator.plot_nav_by_year()
+    elif switch in ["SIMUQ"]:
+        from skyrim.whiterun import SetFontGreen, SetFontYellow
+        from skyrim.falkreath import CLib1Tab1
+        from setup_project import (futures_by_instrument_dir, by_instru_md_dir,
+                                   available_universe_dir, signals_portfolios_dir,
+                                   simulations_complex_dir, evaluations_complex_dir)
+        from config_portfolio import cost_rate_portfolios, performance_indicators
+        from struct_lib.returns_and_exposure import get_lib_struct_available_universe
+        from struct_lib.portfolios import get_lib_struct_signal
+        from simulations.simulation_fun import cal_simulations_mp_q, evaluate_simu_q
+
+        signal_ids = ["RF", "RD", "NF", "ND"]
+        database_structure: dict[str, CLib1Tab1] = {"available_universe": get_lib_struct_available_universe()}
+        database_structure.update({_: get_lib_struct_signal(_) for _ in signal_ids})
+        test_windows = [1]
+        init_premium, cost_reservation, minimum_weight_threshold = 1000e4, 0, 3e-3
+        cal_simulations_mp_q(
+            proc_num=proc_num, signal_ids=signal_ids, test_windows=test_windows,
+            calendar_path=calendar_path, instrument_info_path=futures_instru_info_path,
+            md_by_instru_dir=by_instru_md_dir, major_minor_dir=futures_by_instrument_dir, available_universe_dir=available_universe_dir,
+            sig_dir=signals_portfolios_dir, dst_dir=simulations_complex_dir,
+            database_structure=database_structure, test_universe=concerned_instruments_universe,
+            test_bgn_date=bgn_date, test_stp_date=stp_date,
+            cost_reservation=cost_reservation, cost_rate=cost_rate_portfolios, init_premium=init_premium,
+            minimum_weight_threshold=minimum_weight_threshold,
+            skip_if_exist=False,
+        )
+        print("=" * 121)
+        print(f"init premium: {SetFontGreen(f'{init_premium / 1e4:.2f} WANYUAN'):.>36s}")
+        print(f"begin date  : {SetFontYellow(bgn_date):.>36s}")
+        print(f"stop  date  : {SetFontYellow(stp_date):.>36s}")
+        print(f"cost  rate  : {SetFontGreen(f'{cost_rate_portfolios:.4f}'):.>36s}")
+        print(f"min weight  : {SetFontGreen(f'{minimum_weight_threshold:.4f}'):.>36s}")
+        print("-" * 121)
+        evaluate_simu_q(signal_ids=signal_ids, performance_indicators=performance_indicators,
+                        simu_dir=simulations_complex_dir, eval_dir=evaluations_complex_dir)
+        print("-" * 121, "\n")
     else:
         pass

@@ -16,6 +16,7 @@ bgn_dates_in_overwrite_mod = {
 
     "SIG": "20140701",  # signals
     "SIMU": "20140701",  # signals
+    "SIMUQ": "20140701",  # signals
 }
 
 # universe

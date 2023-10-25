@@ -5,7 +5,7 @@ from skyrim.whiterun import CCalendarMonthly
 from skyrim.winterhold2 import CPlotBars
 from skyrim.falkreath import CManagerLibReader, CManagerLibWriter
 from scipy.optimize import minimize, NonlinearConstraint, LinearConstraint
-from struct_lib.portfolios import get_signal_optimized_lib_struct, get_nav_df
+from struct_lib.portfolios import get_lib_struct_signal_optimized, get_nav_df
 
 
 def portfolio_return(w: np.ndarray, mu: np.ndarray) -> float:
@@ -91,7 +91,7 @@ class CSignalOptimizerReader(object):
     def __init__(self, save_id: str, optimized_dir: str):
         self.save_id = save_id
         self.optimized_dir = optimized_dir
-        self.optimized_struct = get_signal_optimized_lib_struct(save_id)
+        self.optimized_struct = get_lib_struct_signal_optimized(save_id)
 
     def _get_optimized_lib_reader(self) -> CManagerLibReader:
         lib_reader = CManagerLibReader(self.optimized_dir, self.optimized_struct.m_lib_name)
