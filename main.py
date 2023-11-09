@@ -4,7 +4,8 @@ import datetime as dt
 
 def parse_args(bgn_dates_options: dict[str, str]):
     args_parser = argparse.ArgumentParser(description="Entry point of this project", formatter_class=argparse.RawTextHelpFormatter)
-    args_parser.add_argument("-w", "--switch", type=str, choices=('ir', 'au', 'mr', 'tr', 'trn', 'fe', 'fen', 'ic', 'icn', 'ics', 'icns', 'icc', 'fecor', 'sig', 'simu', 'eval', 'simuq'),
+    args_parser.add_argument("-w", "--switch", type=str, choices=(
+        'ir', 'au', 'mr', 'tr', 'trn', 'fe', 'fen', 'ic', 'icn', 'ics', 'icns', 'icc', 'fecor', 'sig', 'simu', 'eval', 'simuq', 'check'),
                              help="""use this to decide which parts to run, available options = {
         'ir': instrument return,
         'au': available universe,
@@ -22,7 +23,8 @@ def parse_args(bgn_dates_options: dict[str, str]):
         'sig': signals,
         'simu': simulations,
         'eval': evaluations,
-        'simuq': simulations-complex
+        'simuq': simulations-complex,
+        'check': check signals,
         }""")
     args_parser.add_argument("-m", "--mode", type=str, choices=("o", "a"), help="""run mode""")
     args_parser.add_argument("-b", "--bgn", type=str, help="""begin date, must be provided if run_mode = 'a' else DO NOT provided.""")
@@ -38,7 +40,7 @@ def parse_args(bgn_dates_options: dict[str, str]):
     args = args_parser.parse_args()
 
     _switch = args.switch.upper()
-    if _switch in ["ICS", "ICNS", "ICC", "EVAL"]:
+    if _switch in ["ICS", "ICNS", "ICC", "EVAL", "CHECK"]:
         _run_mode = None
     elif _switch in ["IR", "MR", "FECOR", "SIMUQ"]:
         _run_mode = "O"
@@ -592,5 +594,41 @@ if __name__ == "__main__":
         evaluate_simu_q(signal_ids=signal_ids, performance_indicators=performance_indicators,
                         simu_dir=simulations_complex_dir, eval_dir=evaluations_complex_dir)
         print("-" * 121, "\n")
+    elif switch in ["CHECK"]:
+        from config_portfolio import selected_src_signal_ids_raw, selected_src_signal_ids_neu
+        from setup_project import signals_hedge_test_dir, signals_optimized_dir, signals_portfolios_dir, calendar_path
+        from check import validate_dynamic_portfolio_weight
+
+        # selected_df = display_signal_selected(
+        #     sids=selected_src_signal_ids_raw,
+        #     db_save_dir=signals_hedge_test_dir,
+        #     bgn_date="20231011", stp_date="20231012", instrument="AG.SHF"
+        # )
+        # print(selected_df)
+        #
+        # selected_df = display_signal_selected(
+        #     sids=selected_src_signal_ids_neu,
+        #     db_save_dir=signals_hedge_test_dir,
+        #     bgn_date="20231011", stp_date="20231012", instrument="AG.SHF"
+        # )
+        # print(selected_df)
+
+        calendar = CCalendarMonthly(calendar_path)
+        for test_date in calendar.get_iter_list(bgn_date, stp_date, True):
+            validate_dynamic_portfolio_weight(
+                check_ids=(selected_src_signal_ids_raw, "RD"), trade_date=test_date,
+                src_signal_db_save_dir=signals_hedge_test_dir,
+                optimized_dir=signals_optimized_dir,
+                portfolio_db_save_dir=signals_portfolios_dir,
+                calendar=calendar
+            )
+            validate_dynamic_portfolio_weight(
+                check_ids=(selected_src_signal_ids_neu, "ND"), trade_date=test_date,
+                src_signal_db_save_dir=signals_hedge_test_dir,
+                optimized_dir=signals_optimized_dir,
+                portfolio_db_save_dir=signals_portfolios_dir,
+                calendar=calendar
+            )
+
     else:
         pass
