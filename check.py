@@ -60,7 +60,7 @@ def validate_dynamic_portfolio_weight(check_ids: tuple[list[str], str], trade_da
     if check_df.empty:
         print(f"... there is no data available for {SetFontYellow(trade_date)}. This may happen because {SetFontYellow(trade_date)} is not a trade_date, please check again.")
     else:
-        if diff_abs_sum > 1e-10:
+        if diff_abs_sum > 1e-12:
             pd.set_option("display.width", 0)
             pd.set_option("display.float_format", "{:.6f}".format)
             print(f"... some differences are found for portfolio-{SetFontYellow(short_id)} @ {SetFontYellow(trade_date)}")
