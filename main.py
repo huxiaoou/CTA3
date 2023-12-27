@@ -37,6 +37,7 @@ def parse_args(bgn_dates_options: dict[str, str]):
     args_parser.add_argument("-t", "--type", type=str, default="", choices=('hedge-raw', 'hedge-ma', 'portfolio'),
                              help="""optional, must be provided if switch in ('sig','simu','eval'), use this to decide type of signal/simulation""")
     args_parser.add_argument("-p", "--process", type=int, default=5, help="""number of process to be called when calculating, default = 5""")
+    args_parser.add_argument("-v", "--verbose", default=False, action="store_true", help="to print more details")
     args = args_parser.parse_args()
 
     _switch = args.switch.upper()
@@ -52,7 +53,8 @@ def parse_args(bgn_dates_options: dict[str, str]):
     _factor = args.factor.upper() if _switch in ["FE"] else None
     _sig_type = args.type.upper() if _switch in ["SIG", "SIMU", "EVAL"] else None
     _proc_num = args.process
-    return _switch, _run_mode, _bgn_date, _stp_date, _factor, _sig_type, _proc_num
+    _verbose = args.verbose
+    return _switch, _run_mode, _bgn_date, _stp_date, _factor, _sig_type, _proc_num, _verbose
 
 
 if __name__ == "__main__":
@@ -61,7 +63,7 @@ if __name__ == "__main__":
     from config_project import bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification
     from skyrim.whiterun import CCalendarMonthly, CInstrumentInfoTable
 
-    switch, run_mode, bgn_date, stp_date, factor, sig_type, proc_num = parse_args(bgn_dates_in_overwrite_mod)
+    switch, run_mode, bgn_date, stp_date, factor, sig_type, proc_num, verbose = parse_args(bgn_dates_in_overwrite_mod)
 
     # some shared data
     calendar = CCalendarMonthly(calendar_path)
@@ -620,14 +622,14 @@ if __name__ == "__main__":
                 src_signal_db_save_dir=signals_hedge_test_dir,
                 optimized_dir=signals_optimized_dir,
                 portfolio_db_save_dir=signals_portfolios_dir,
-                calendar=calendar
+                calendar=calendar, verbose=verbose,
             )
             validate_dynamic_portfolio_weight(
                 check_ids=(selected_src_signal_ids_neu, "ND"), trade_date=test_date,
                 src_signal_db_save_dir=signals_hedge_test_dir,
                 optimized_dir=signals_optimized_dir,
                 portfolio_db_save_dir=signals_portfolios_dir,
-                calendar=calendar
+                calendar=calendar, verbose=verbose,
             )
 
     else:

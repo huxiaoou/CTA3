@@ -24,7 +24,7 @@ def display_signal_selected(sids: list[str], db_save_dir: str,
 
 def validate_dynamic_portfolio_weight(check_ids: tuple[list[str], str], trade_date: str,
                                       src_signal_db_save_dir: str, optimized_dir: str,
-                                      portfolio_db_save_dir: str, calendar: CCalendarMonthly):
+                                      portfolio_db_save_dir: str, calendar: CCalendarMonthly, verbose: bool):
     selected_src_ids, short_id = check_ids
     src_data = {}
     for src_fac_id in selected_src_ids:
@@ -66,9 +66,12 @@ def validate_dynamic_portfolio_weight(check_ids: tuple[list[str], str], trade_da
             print(f"... some differences are found for portfolio-{SetFontYellow(short_id)} @ {SetFontYellow(trade_date)}")
             print(f"shape of source    signal = {src_df.shape}")
             print(f"shape of optimized weight = {weight_df.shape}")
-            print(trade_date, optimized_weight_date)
+            print(f"trade date = {trade_date}")
+            print(f"weight optimized date = {optimized_weight_date}")
             print(check_df)
             print(check_df.abs().sum())
         else:
             print(f"... No errors are found for portfolio-{SetFontGreen(short_id)} @ signal date = {SetFontGreen(trade_date)}")
+            if verbose:
+                print(check_df)
     return 0
