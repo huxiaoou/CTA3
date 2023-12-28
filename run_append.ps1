@@ -48,7 +48,7 @@ python main.py -p $proc_num -w eval -t hedge-ma
 
 # portfolios
 python main.py -p $proc_num -w sig  -t portfolio -m a -b $append_date
-python mian.py -p $proc_num -w check -b $append_date
+python main.py -p $proc_num -w check -b $append_date
 python main.py -p $proc_num -w simu -t portfolio -m a -b $append_date
 python main.py -p $proc_num -w eval -t portfolio
 python main.py -p $proc_num -w simuq -s $stp_date
