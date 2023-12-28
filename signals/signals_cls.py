@@ -96,6 +96,7 @@ class CSignalMA(CSignalReader):
         wgt_abs_sum = mov_ave_df.abs().sum(axis=1)
         mov_ave_df_norm = mov_ave_df.div(wgt_abs_sum, axis=0).fillna(0)
         update_df = mov_ave_df_norm.stack(dropna=False).reset_index()
+        update_df = update_df.loc[update_df["trade_date"] >= bgn_date]
         return update_df
 
 
