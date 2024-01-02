@@ -5,7 +5,7 @@ import datetime as dt
 def parse_args(bgn_dates_options: dict[str, str]):
     args_parser = argparse.ArgumentParser(description="Entry point of this project", formatter_class=argparse.RawTextHelpFormatter)
     args_parser.add_argument("-w", "--switch", type=str, choices=(
-        'ir', 'au', 'mr', 'tr', 'trn', 'fe', 'fen', 'ic', 'icn', 'ics', 'icns', 'icc', 'fecor', 'sig', 'simu', 'eval', 'simuq', 'check'),
+        'ir', 'au', 'mr', 'tr', 'trn', 'fe', 'fen', 'ic', 'icn', 'ics', 'icns', 'icc', 'fecor', 'sig', 'simu', 'eval', 'simuq', 'check', 'view'),
                              help="""use this to decide which parts to run, available options = {
         'ir': instrument return,
         'au': available universe,
@@ -34,14 +34,15 @@ def parse_args(bgn_dates_options: dict[str, str]):
                                  'mtm', 'size', 'oi', 'rs', 'basis', 'ts', 'liquid', 'sr', 'hr', 'netoi', 'netoiw', 'netdoi', 'netdoiw',
                                  'skew', 'vol', 'rvol', 'cv', 'ctp', 'cvp', 'csp', 'beta', 'val', 'cbeta', 'ibeta', 'macd', 'kdj', 'rsi',),
                              )
-    args_parser.add_argument("-t", "--type", type=str, default="", choices=('hedge-raw', 'hedge-ma', 'portfolio'),
-                             help="""optional, must be provided if switch in ('sig','simu','eval'), use this to decide type of signal/simulation""")
+    args_parser.add_argument("-t", "--type", type=str, default="", choices=(
+        'hedge-raw', 'hedge-ma', 'portfolio', 'exp-raw', 'exp-neu', 'hedge-raw', 'hedge-neu', 'hedge-ma-raw', 'hedge-ma-neu'),
+                             help="""optional, must be provided if switch in ('sig','simu','eval', 'view'), use this to decide type of signal/simulation""")
     args_parser.add_argument("-p", "--process", type=int, default=5, help="""number of process to be called when calculating, default = 5""")
     args_parser.add_argument("-v", "--verbose", default=False, action="store_true", help="to print more details")
     args = args_parser.parse_args()
 
     _switch = args.switch.upper()
-    if _switch in ["ICS", "ICNS", "ICC", "EVAL", "CHECK"]:
+    if _switch in ["ICS", "ICNS", "ICC", "EVAL", "CHECK", "VIEW"]:
         _run_mode = None
     elif _switch in ["IR", "MR", "FECOR", "SIMUQ"]:
         _run_mode = "O"
@@ -51,7 +52,7 @@ def parse_args(bgn_dates_options: dict[str, str]):
     if (_stp_date is None) and (_bgn_date is not None):
         _stp_date = (dt.datetime.strptime(_bgn_date, "%Y%m%d") + dt.timedelta(days=1)).strftime("%Y%m%d")
     _factor = args.factor.upper() if _switch in ["FE"] else None
-    _sig_type = args.type.upper() if _switch in ["SIG", "SIMU", "EVAL"] else None
+    _sig_type = args.type.upper() if _switch in ["SIG", "SIMU", "EVAL", "VIEW"] else None
     _proc_num = args.process
     _verbose = args.verbose
     return _switch, _run_mode, _bgn_date, _stp_date, _factor, _sig_type, _proc_num, _verbose
@@ -597,23 +598,9 @@ if __name__ == "__main__":
                         simu_dir=simulations_complex_dir, eval_dir=evaluations_complex_dir)
         print("-" * 121, "\n")
     elif switch in ["CHECK"]:
-        from config_portfolio import selected_src_signal_ids_raw, selected_src_signal_ids_neu
         from setup_project import signals_hedge_test_dir, signals_optimized_dir, signals_portfolios_dir, calendar_path
+        from config_portfolio import selected_src_signal_ids_raw, selected_src_signal_ids_neu
         from check import validate_dynamic_portfolio_weight
-
-        # selected_df = display_signal_selected(
-        #     sids=selected_src_signal_ids_raw,
-        #     db_save_dir=signals_hedge_test_dir,
-        #     bgn_date="20231011", stp_date="20231012", instrument="AG.SHF"
-        # )
-        # print(selected_df)
-        #
-        # selected_df = display_signal_selected(
-        #     sids=selected_src_signal_ids_neu,
-        #     db_save_dir=signals_hedge_test_dir,
-        #     bgn_date="20231011", stp_date="20231012", instrument="AG.SHF"
-        # )
-        # print(selected_df)
 
         calendar = CCalendarMonthly(calendar_path)
         for test_date in calendar.get_iter_list(bgn_date, stp_date, True):
@@ -631,6 +618,61 @@ if __name__ == "__main__":
                 portfolio_db_save_dir=signals_portfolios_dir,
                 calendar=calendar, verbose=verbose,
             )
+    elif switch in ["VIEW"]:
+        from setup_project import factors_exposure_raw_dir, factors_exposure_neu_dir, signals_factor_raw_dir, signals_hedge_test_dir, signals_portfolios_dir
+        from config_portfolio import (ids_raw, ids_neu,
+                                      selected_src_signal_ids_raw_noma, selected_src_signal_ids_neu_noma,
+                                      selected_src_signal_ids_raw, selected_src_signal_ids_neu)
+        from check import view_cross_section_data
 
+        if sig_type == "EXP-RAW":
+            view_cross_section_data(
+                data_ids=ids_raw,
+                db_save_dir=factors_exposure_raw_dir,
+                trade_date=bgn_date,
+                data_type="exposure", cn=10,
+            )
+        elif sig_type == "EXP-NEU":
+            view_cross_section_data(
+                data_ids=ids_neu,
+                db_save_dir=factors_exposure_neu_dir,
+                trade_date=bgn_date,
+                data_type="exposure", cn=10,
+            )
+        elif sig_type == "HEDGE-RAW":
+            view_cross_section_data(
+                data_ids=selected_src_signal_ids_raw_noma,
+                db_save_dir=signals_factor_raw_dir,
+                trade_date=bgn_date,
+                data_type="signal", cn=8,
+            )
+        elif sig_type == "HEDGE-NEU":
+            view_cross_section_data(
+                data_ids=selected_src_signal_ids_neu_noma,
+                db_save_dir=signals_factor_raw_dir,
+                trade_date=bgn_date,
+                data_type="signal", cn=8,
+            )
+        elif sig_type == "HEDGE-MA-RAW":
+            view_cross_section_data(
+                data_ids=selected_src_signal_ids_raw,
+                db_save_dir=signals_hedge_test_dir,
+                trade_date=bgn_date,
+                data_type="signal", cn=8,
+            )
+        elif sig_type == "HEDGE-MA-NEU":
+            view_cross_section_data(
+                data_ids=selected_src_signal_ids_neu,
+                db_save_dir=signals_hedge_test_dir,
+                trade_date=bgn_date,
+                data_type="signal", cn=8,
+            )
+        elif sig_type == "PORTFOLIO":
+            view_cross_section_data(
+                data_ids=["RF", "RD", "NF", "ND"],
+                db_save_dir=signals_portfolios_dir,
+                trade_date=bgn_date,
+                data_type="signal", cn=8,
+            )
     else:
         pass

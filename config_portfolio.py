@@ -79,6 +79,13 @@ selected_neu_factors_and_uni_prop_ma = (
     ("NETDOIWA020", 0.3, 5),
     ("NETDOIWBD180", 0.3, 10),
 )
+
+ids_raw = [fac for fac, _, _ in selected_raw_factors_and_uni_prop_ma]
+ids_neu = [f"{fac}_NEU" for fac, _, _ in selected_neu_factors_and_uni_prop_ma]
+
+selected_src_signal_ids_raw_noma = [f"{fac}_UHP{int(uhp * 10):02d}" for fac, uhp, _ in selected_raw_factors_and_uni_prop_ma]
+selected_src_signal_ids_neu_noma = [f"{fac}_NEU_UHP{int(uhp * 10):02d}" for fac, uhp, _ in selected_neu_factors_and_uni_prop_ma]
+
 selected_src_signal_ids_raw = [f"{fac}_UHP{int(uhp * 10):02d}_MA{maw:02d}" for fac, uhp, maw in selected_raw_factors_and_uni_prop_ma]
 selected_src_signal_ids_neu = [f"{fac}_NEU_UHP{int(uhp * 10):02d}_MA{maw:02d}" for fac, uhp, maw in selected_neu_factors_and_uni_prop_ma]
 size_raw = len(selected_src_signal_ids_raw)

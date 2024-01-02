@@ -1,25 +1,41 @@
 import pandas as pd
+from struct_lib.returns_and_exposure import get_lib_struct_factor_exposure
 from struct_lib.portfolios import get_lib_struct_signal, get_lib_struct_signal_optimized
 from skyrim.falkreath import CManagerLibReader
 from skyrim.whiterun import CCalendarMonthly, SetFontGreen, SetFontYellow
 
 
-def display_signal_selected(sids: list[str], db_save_dir: str,
-                            bgn_date: str, stp_date: str, instrument: str) -> pd.DataFrame:
-    dfs_list = []
-    for sid in sids:
-        sig_lib_struct = get_lib_struct_signal(sid)
+def view_cross_section_data(data_ids: list[str], db_save_dir: str, trade_date: str, data_type: str, cn: int = 8):
+    """
+
+    :param data_ids:
+    :param db_save_dir:
+    :param trade_date:
+    :param data_type: 'signal' or 'exposure'
+    :return:
+    """
+    data = {}
+    for sid in data_ids:
+        if data_type == "signal":
+            sig_lib_struct = get_lib_struct_signal(sid)
+        elif data_type == "exposure":
+            sig_lib_struct = get_lib_struct_factor_exposure(sid)
+        else:
+            raise ValueError
         sig_lib_reader = CManagerLibReader(db_save_dir, sig_lib_struct.m_lib_name)
         sig_lib_reader.set_default(sig_lib_struct.m_tab.m_table_name)
         df = sig_lib_reader.read_by_conditions(t_conditions=[
-            ("trade_date", ">=", bgn_date),
-            ("trade_date", "<", stp_date),
-            ("instrument", "=", instrument),
-        ], t_value_columns=["trade_date", "instrument", "value"])
-        df["sid"] = sid
-        dfs_list.append(df)
-    res = pd.concat(dfs_list, axis=0, ignore_index=True)
-    return res
+            ("trade_date", "=", trade_date),
+        ], t_value_columns=["instrument", "value"]).set_index("instrument")
+        data[sid] = df["value"]
+    df = pd.DataFrame(data)
+
+    pd.set_option("display.width", 0)
+    i = 0
+    while i < len(data_ids):
+        print(df.iloc[:, i:i + cn])
+        i += cn
+    return 0
 
 
 def validate_dynamic_portfolio_weight(check_ids: tuple[list[str], str], trade_date: str,
