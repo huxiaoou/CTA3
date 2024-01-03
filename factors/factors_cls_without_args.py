@@ -145,7 +145,8 @@ class CFactorsHR(CFactorsWithInstruVolume):
         return 0
 
     def _get_instrument_factor_exposure(self, instrument: str, run_mode: str, bgn_date: str, stp_date: str) -> pd.Series:
-        base_date = self.calendar.get_next_date(bgn_date, -1)
+        iter_dates = self.calendar.get_iter_list(bgn_date, stp_date, True)
+        base_date = self.calendar.get_next_date(iter_dates[0], -1)
         db_reader = self.manager_instru_volume.get_db_reader()
         df = db_reader.read_by_conditions(t_conditions=[
             ("trade_date", ">=", base_date),
