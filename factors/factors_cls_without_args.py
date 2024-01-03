@@ -145,17 +145,18 @@ class CFactorsHR(CFactorsWithInstruVolume):
         return 0
 
     def _get_instrument_factor_exposure(self, instrument: str, run_mode: str, bgn_date: str, stp_date: str) -> pd.Series:
+        base_date = self.calendar.get_next_date(bgn_date, -1)
         db_reader = self.manager_instru_volume.get_db_reader()
         df = db_reader.read_by_conditions(t_conditions=[
-            ("trade_date", ">=", bgn_date),
+            ("trade_date", ">=", base_date),
             ("trade_date", "<", stp_date),
         ], t_value_columns=["trade_date", "volume", "oi"],
             t_using_default_table=False, t_table_name=instrument.replace(".", "_"))
         db_reader.close()
         df.set_index("trade_date", inplace=True)
         df["doi"] = (df["oi"] - df["oi"].shift(1)).fillna(0)
-        df["hr"] = df["doi"] / df["volume"]
-        return df["hr"]
+        s = df["doi"] / df["volume"]
+        return self.truncate_series(s, bgn_date)
 
 
 class CFactorsNETOI(CFactorsWithInstruVolumeAndInstruMember):

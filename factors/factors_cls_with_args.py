@@ -127,6 +127,11 @@ class CFactorsCTP(CFactorsWithMajorReturnAndArgWin):
         self.factor_id = f"CTP{self.arg_win:03d}"
         return 0
 
+    def _set_base_date(self, bgn_date: str, stp_date: str):
+        iter_dates = self.calendar.get_iter_list(bgn_date, stp_date, True)
+        self.base_date = self.calendar.get_next_date(iter_dates[0], -self.arg_win)
+        return 0
+
     def _get_instrument_factor_exposure(self, instrument: str, run_mode: str, bgn_date: str, stp_date: str) -> pd.Series:
         self._set_base_date(bgn_date, stp_date)
         db_reader = self.manager_major_return.get_db_reader()
