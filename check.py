@@ -31,6 +31,7 @@ def view_cross_section_data(data_ids: list[str], db_save_dir: str, trade_date: s
     df = pd.DataFrame(data)
 
     pd.set_option("display.width", 0)
+    pd.set_option("display.float_format", "{:.6f}".format)
     i = 0
     while i < len(data_ids):
         print(df.iloc[:, i:i + cn])
