@@ -95,7 +95,7 @@ class CSignalMA(CSignalReader):
         mov_ave_df = src_sig_pivot_df.rolling(window=self.mov_ave_win, min_periods=1).mean()
         wgt_abs_sum = mov_ave_df.abs().sum(axis=1)
         mov_ave_df_norm = mov_ave_df.div(wgt_abs_sum, axis=0).fillna(0)
-        update_df = mov_ave_df_norm.stack(dropna=False).reset_index()
+        update_df = mov_ave_df_norm.stack(dropna=False, future_stack=True).reset_index()
         update_df = update_df.loc[update_df["trade_date"] >= bgn_date]
         return update_df
 
@@ -173,7 +173,7 @@ class CSignalHedge(CSignalFromSrcFactor):
         if type(res_agg) == pd.Series:
             update_df = res_agg.reset_index()
         elif type(res_agg) == pd.DataFrame:
-            update_df = res_agg.stack(dropna=False).reset_index()
+            update_df = res_agg.stack(dropna=False, future_stack=True).reset_index()
         else:
             print("... Wrong type of result when calculate factors neutral.")
             print("... The result is neither a pd.Series nor a pd.DataFrame.")
