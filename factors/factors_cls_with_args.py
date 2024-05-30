@@ -286,7 +286,7 @@ class CFactorsIBETA(CFactorsWithMajorReturnAndMacroEconomic):
         df.set_index("trade_date", inplace=True)
 
         df["trade_month"] = df.index.map(lambda _: _[0:6])
-        month_ret_df = df[["trade_month", "major_return"]].groupby(by="trade_month").apply(lambda z: np.prod(1 + z) - 1)
+        month_ret_df = df[["trade_month", "major_return"]].groupby(by="trade_month").apply(lambda z: (z + 1).prod() - 1)
         filter_month = (month_ret_df.index >= base_month) & (month_ret_df.index < end_last_month)
         selected_month_ret_df: pd.DataFrame = month_ret_df.loc[filter_month].copy()
         selected_month_ret_df["cpi"] = self.manager_macro_economic.df["cpi_rate"] / 100
