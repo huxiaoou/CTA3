@@ -72,7 +72,7 @@ def neutralize_one_factor(src_factor: str,
         if type(res_agg) == pd.Series:
             update_df = res_agg.reset_index()
         elif type(res_agg) == pd.DataFrame:
-            update_df = res_agg.stack(dropna=False).reset_index()
+            update_df = res_agg.stack(future_stack=True).reset_index()
         else:
             print("... Wrong type of result when calculate factors neutral.")
             print("... The result is neither a pd.Series nor a pd.DataFrame.")

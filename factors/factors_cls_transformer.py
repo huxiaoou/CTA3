@@ -70,7 +70,7 @@ class CFactorsTransformer(CFactors):
         new_df = self._transform(pivot_df)
         new_df = self.truncate_dataFrame(new_df, bgn_date)
         new_df: pd.DataFrame = new_df * self.direction
-        update_df = new_df.stack(dropna=False).reset_index(level=1)
+        update_df = new_df.stack(future_stack=True).reset_index(level=1)
         return update_df
 
 

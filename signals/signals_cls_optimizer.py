@@ -198,7 +198,7 @@ class CSignalOptimizer(CSignalOptimizerReader):
                         ws = pd.Series(data=w, index=mu.index)
                     model_data[train_end_date] = ws
                 optimized_df = pd.DataFrame.from_dict(model_data, orient="index").fillna(0)
-                update_df = optimized_df.stack(dropna=False).reset_index()
+                update_df = optimized_df.stack(future_stack=True).reset_index()
                 self.__save(update_df, run_mode)
         return 0
 
@@ -215,9 +215,11 @@ class CSignalOptimizer(CSignalOptimizerReader):
         monthly_df = pd.pivot_table(data=optimized_df, index="trade_date", columns="signal", values="value")
         signal_weight_df = pd.merge(left=header, right=monthly_df, left_on="trade_date", right_index=True, how="left")
         signal_weight_df.set_index("trade_date", inplace=True)
-        signal_weight_df.fillna(method="ffill", inplace=True)
+        # signal_weight_df.fillna(method="ffill", inplace=True)
+        signal_weight_df.ffill(inplace=True)
         if run_mode in ["O"]:
-            signal_weight_df.fillna(method="bfill", inplace=True)
+            # signal_weight_df.fillna(method="bfill", inplace=True)
+            signal_weight_df.bfill(inplace=True)
         signal_weight_df = signal_weight_df.truncate(before=bgn_date)
         return signal_weight_df
 

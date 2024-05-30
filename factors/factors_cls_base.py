@@ -138,7 +138,7 @@ class CFactors(object):
         for instrument in self.universe:
             all_factor_data[instrument] = self._get_instrument_factor_exposure(instrument, run_mode, bgn_date, stp_date)
         all_factor_df = pd.DataFrame(all_factor_data)
-        update_df = all_factor_df.stack(dropna=False).reset_index(level=1)
+        update_df = all_factor_df.stack(future_stack=True).reset_index(level=1)
         return update_df
 
     def core(self, run_mode: str, bgn_date: str, stp_date: str):
@@ -236,7 +236,7 @@ class CFactorsWithInstruVolumeAndInstruMember(CFactors):
         ], t_value_columns=["trade_date", x, y],
             t_using_default_table=False, t_table_name=instrument.replace(".", "_"))
         if len(member_df) > 0:
-            member_df_agg = pd.pivot_table(data=member_df, index="trade_date", values=[x, y], aggfunc=sum)
+            member_df_agg = pd.pivot_table(data=member_df, index="trade_date", values=[x, y], aggfunc="sum")
             return member_df_agg[x] - member_df_agg[y]
         else:
             return pd.Series(data=np.nan, index=self.calendar.get_iter_list(bgn_date, stp_date, True))

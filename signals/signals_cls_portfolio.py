@@ -43,7 +43,7 @@ class CSignalCombineFromOtherSignalsWithFixWeight(CSignalCombineFromOtherSignals
             sig_wgt = self.src_signal_weight[src_signal_id]  # type = scalar
             sum_weight_df = sum_weight_df.add(sig_df * sig_wgt, fill_value=0)
         sum_weight_df_norm = self.normalize_final_weight(sum_weight_df)
-        update_df = sum_weight_df_norm.stack(dropna=False, future_stack=True).reset_index()
+        update_df = sum_weight_df_norm.stack(future_stack=True).reset_index()
         return update_df
 
 
@@ -73,5 +73,5 @@ class CSignalCombineFromOtherSignalsWithDynWeight(CSignalCombineFromOtherSignals
             dlt_wgt = sig_df.multiply(sig_wgt, axis=0).fillna(0)
             sum_weight_df = sum_weight_df.add(dlt_wgt, fill_value=0)
         sum_weight_df_norm = self.normalize_final_weight(sum_weight_df)
-        update_df = sum_weight_df_norm.stack(dropna=False, future_stack=True).reset_index()
+        update_df = sum_weight_df_norm.stack(future_stack=True).reset_index()
         return update_df
